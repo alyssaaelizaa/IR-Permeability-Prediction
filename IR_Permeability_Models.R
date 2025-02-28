@@ -1,6 +1,7 @@
 ### Exercise 6.1:
 
 # (a) Start R and use these commands to load the data:
+install.packages("caret")
 library(caret)
 data(tecator) # use ?tecator to see more details
 
@@ -10,6 +11,8 @@ data(tecator) # use ?tecator to see more details
 # smaller dimension than the total number of predictors (215). Use PCA
 # to determine the effective dimension of these data. What is the effective
 # dimension? 
+
+tecator_pca <- prcomp(absorp, data=tecator, scale. = TRUE)
 
 ### TODO: 
 # Exercise 6.1: (b) - (e)
