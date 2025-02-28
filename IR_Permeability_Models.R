@@ -12,7 +12,7 @@ data(tecator) # use ?tecator to see more details
 # to determine the effective dimension of these data. What is the effective
 # dimension? 
 
-tecator_pca <- prcomp(absorp, tecator, scale. = TRUE)
+tecator_pca <- prcomp(absorp, data=tecator, scale. = TRUE)
 
 ### TODO: 
 # Exercise 6.1: (b) - (e)
