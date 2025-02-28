@@ -9,7 +9,7 @@ data(tecator) # use ?tecator to see more details
 # the predictors have a high degree of correlation. Hence, the data lie in a
 # smaller dimension than the total number of predictors (215). Use PCA
 # to determine the effective dimension of these data. What is the effective
-# dimension?
+# dimension? 
 
 ### TODO: 
 # Exercise 6.1: (b) - (e)
