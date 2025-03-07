@@ -54,8 +54,19 @@ plot(percent_variance, xlab="Component", ylab="Percentage of Total Variance",
 # build each variety of models described in this chapter. For those models with
 # tuning parameters, what are the optimal values of the tuning parameter(s)?
 
+# Splitting data set will be easier on one data frame
+tecator_data <- data.frame(absorp, fat_percentage = endpoints[,2])
+
+set.seed(42)
+trainIndex <- createDataPartition(tecator_data$fat_percentage, p=0.8, list=FALSE)
+training_data <- tecator_data[trainIndex, ]
+testing_data <- tecator_data[-trainIndex, ]
+
+# TODO: 
+# Pre-process data and build multiple models for analysis. 
+# Models: Linear Regression, Lasso, and Ridge
 
 
 ### TODO: 
-# Exercise 6.1: (c) - (e)
+# Exercise 6.1: (c) in-progress, (d) - (e)
 # Exercise 6.2: (a) - (d)
