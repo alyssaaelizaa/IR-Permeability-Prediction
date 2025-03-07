@@ -25,14 +25,34 @@ data(tecator) # use ?tecator to see more details
 tecator_pca <- prcomp(absorp, scale. = TRUE)
 summary(tecator_pca)
 
-# Visualize relationship between PC1 and PC2
+# Visualize scatter plot relationship between PC1 and PC2
+autoplot(tecator_pca) + ggtitle("Scatter plot of PC1 vs. PC2 in Percentages")
 
-# comparing differences between scatter plots
-autoplot(tecator_pca)
-transparentTheme(pchSize = ., trans = .20)
+xyplot(PC2 ~ PC1, data = as.data.frame(tecator_pca$x),
+       xlab = "Principal Component #1",
+       ylab = "Principal Component #2",
+       main = "Scatter plot of PC1 vs. PC2",
+       type = c("p", "g"), aspect = 0.5)
+
 
 # Visualize variance in each principal component
-# TODO: build scree plot for variance visualization
+# compute the total variance for each component
+percent_variance = (tecator_pca$sdev^2/sum(tecator_pca$sdev^2)) * 100
+percent_variance[1:4]   # first 4 components account for 99% of variance
+
+plot(percent_variance, xlab="Component", ylab="Percentage of Total Variance",
+     type="l", main="Scree Plot")
+
+# Zoomed in Scree plot for better view of "elbow"
+plot(percent_variance, xlab="Component", ylab="Percentage of Total Variance",
+     type="l", main="Scree Plot", 
+     xlim=c(1, 5),
+     ylim=c(0, max(percent_variance[1:5])))
+
+
+# (c) Split the data into a training and a test set, pre-process the data, and
+# build each variety of models described in this chapter. For those models with
+# tuning parameters, what are the optimal values of the tuning parameter(s)?
 
 
 
