@@ -9,6 +9,8 @@ install.packages("tidyr")
 library(tidyr)
 install.packages("ggplot2")
 library(ggplot2)
+install.packages("corrplot")
+library(corrplot)
 
 ### Exercise 6.1:
 
@@ -51,7 +53,7 @@ plot(percent_variance, xlab="Component", ylab="Percentage of Total Variance",
 
 # Zoomed in Scree plot for better view of "elbow"
 plot(percent_variance, xlab="Component", ylab="Percentage of Total Variance",
-     type="l", main="Scree Plot", 
+     type="l", main="Scree Plot of Absorp", 
      xlim=c(1, 5),
      ylim=c(0, max(percent_variance[1:5])))
 
@@ -99,13 +101,61 @@ ggplot(reshaped, aes(x = Value)) +
     axis.text.y = element_text(size = 5))
 
 # Apply box-cox transformation to normalize data
-bc_trans <- BoxCoxTrans(training_data)
-transformed_data <- predict(bc_trans, training_data)
+boxcox_preprocess <- preProcess(training_data,
+                                method = c("BoxCox", "center", "scale"))
+
+training_data_transformed <- predict(boxcox_preprocess, training_data)
 
 
+# Review transformed data
+# Majority of skewness is near 0. 
+skewness(training_data_transformed) 
+
+
+# Review normalized visualizations
+histogram(training_data_transformed$fat_percentage,
+          main = "Historgram Distribution of Normalized Fat Percentage",
+          xlab = "Fat Percentage",
+          ylab = "Frequency")
+second_reshaped <- pivot_longer(training_data_transformed, 
+                         cols = -fat_percentage,
+                         names_to = "Variable", 
+                         values_to = "Value")
+# Plot the histograms using ggplot2 with facet_wrap
+ggplot(second_reshaped, aes(x = Value)) +
+  geom_histogram(binwidth = 0.1, fill = "blue", color = "black", alpha = 0.7) +
+  facet_wrap(~ Variable, scales = "free_x") +
+  labs(
+    title = "Histogram Distribution of Normalized Predictors in Training Data",
+    x = "Predictors",
+    y = "Frequency"
+  ) +
+  theme(
+    axis.text.x = element_text(size = 5),
+    axis.text.y = element_text(size = 5))
+
+# Check for multi-colinearity
+# Identify highly correlated features (correlation > 0.8)
+trainingCorr <- cor(training_data_transformed)
+corrplot(trainingCorr, order = "hclust", tl.cex = .35)
+
+# Apply PCA to the transformed data to solve multi-colinearity issues
+training_pca <- prcomp(training_data_transformed, scale. = TRUE)
+summary(training_pca)
+
+training_variance = (training_pca$sdev^2/sum(training_pca$sdev^2)) * 100
+training_variance[1:4]   # first 4 components account for 99% of variance
+
+plot(training_variance, xlab="Component", ylab="Percentage of Total Variance",
+     type="l", main="Scree Plot")
+# Zoomed in Scree plot for better view of "elbow"
+plot(training_variance, xlab="Component", ylab="Percentage of Total Variance",
+     type="l", main="Scree Plot of Training Data", 
+     xlim=c(1, 5),
+     ylim=c(0, max(training_variance[1:5])))
 
 # TODO: 
-# Pre-process data and build multiple models for analysis. 
+# build multiple models for analysis. 
 # Models: Linear Regression, Lasso, and Ridge
 
 
