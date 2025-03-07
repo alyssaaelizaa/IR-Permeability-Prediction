@@ -3,6 +3,12 @@ install.packages('ggfortify')
 library(ggfortify)
 install.packages("AppliedPredictiveModeling")
 library(AppliedPredictiveModeling)
+install.packages("moments")
+library(moments)
+install.packages("tidyr")
+library(tidyr)
+install.packages("ggplot2")
+library(ggplot2)
 
 ### Exercise 6.1:
 
@@ -61,6 +67,42 @@ set.seed(42)
 trainIndex <- createDataPartition(tecator_data$fat_percentage, p=0.8, list=FALSE)
 training_data <- tecator_data[trainIndex, ]
 testing_data <- tecator_data[-trainIndex, ]
+
+
+# Pre-processing
+sum(is.na(tecator_data)) # check for missing values
+str(training_data) # ensure columns are numerical
+
+# Data is moderately and severely right-skewed based on output
+skewness(training_data) 
+histogram(training_data$fat_percentage,
+          main = "Historgram Distribution of Fat Percentage",
+          xlab = "Fat Percentage",
+          ylab = "Frequency")
+# Reshape the data to a long format for easier visualization
+# Unable to view Fat Percentage column clearly in this format
+reshaped <- pivot_longer(training_data, 
+                          cols = -fat_percentage,
+                          names_to = "Variable", 
+                          values_to = "Value")
+# Plot the histograms using ggplot2 with facet_wrap
+ggplot(reshaped, aes(x = Value)) +
+  geom_histogram(binwidth = 0.1, fill = "blue", color = "black", alpha = 0.7) +
+  facet_wrap(~ Variable, scales = "free_x") +
+  labs(
+    title = "Histogram Distribution of Predictors in Training Data",
+    x = "Predictors",
+    y = "Frequency"
+  ) +
+  theme(
+    axis.text.x = element_text(size = 5),
+    axis.text.y = element_text(size = 5))
+
+# Apply box-cox transformation to normalize data
+bc_trans <- BoxCoxTrans(training_data)
+transformed_data <- predict(bc_trans, training_data)
+
+
 
 # TODO: 
 # Pre-process data and build multiple models for analysis. 
