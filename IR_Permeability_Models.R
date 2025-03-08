@@ -167,9 +167,9 @@ summary(training_lm_model)
 par(mfrow = c(2, 2))
 plot(training_lm_model) 
 
-# Lasso 
+# Lasso Regression
 # defining predictor and response variable
-x <- as.matrix(training_data[, -which(names(training_data) == "fat_percentage")])
+x <- as.matrix(training_pca$x[, 1:4])
 y <- training_data$fat_percentage
 
 # perform k-fold cross-validation to find optimal lambda value
@@ -178,22 +178,47 @@ lasso_cv <- cv.glmnet(x, y, alpha = 1)
 # find optimal lambda value that minimizes test MSE
 best_lambda <- lasso_cv$lambda.min
 best_lambda
-#produce plot of test MSE by lambda value
+# produce plot of test MSE by lambda value
 plot(lasso_cv) 
 
 # find coefficients of best model
 lasso_model <- glmnet(x, y, alpha = 1, lambda = best_lambda)
-
-# Print selected coefficients
 print(coef(lasso_model))
 
+# Build lasso model
+train_predictions <- predict(lasso_model, s = best_lambda, newx = x)
+train_predictions
+# Calculate R squared for evaluation
+actuals <- training_data$fat_percentage
+rss <- sum((actuals - train_predictions)^2)  
+tss <- sum((actuals - mean(actuals))^2)   
+r_squared_train <- 1 - (rss / tss)
+r_squared_train
 
 
-# TODO: 
-# build multiple models for analysis. 
-# Models: Lasso, and Ridge
+# Ridge Regression
+
+# perform cross-validation to find optimal lambda value
+ridge_cv <- cv.glmnet(x, y, alpha = 0)
+# find optimal lambda value that minimizes test MSE
+best_lambda_ridge <- ridge_cv$lambda.min
+best_lambda_ridge
+# produce plot of test MSE by lambda value for Ridge
+plot(ridge_cv)
+# find coefficients of best Ridge model
+ridge_model <- glmnet(x, y, alpha = 0, lambda = best_lambda_ridge)
+print(coef(ridge_model))
+# Build lasso model
+train_ridge_predictions <- predict(ridge_model, s = best_lambda_ridge, newx = x)
+train_ridge_predictions
+# Calculate R-squared for the training data for evaluation
+ss_total_train <- sum((y - mean(y))^2)
+ss_residual_train <- sum((y - train_ridge_predictions)^2)
+r_squared_train <- 1 - (ss_residual_train / ss_total_train)
+print(r_squared_train)
+
 
 
 ### TODO: 
-# Exercise 6.1: (c) in-progress, (d) - (e)
+# Exercise 6.1: (d) - (e)
 # Exercise 6.2: (a) - (d)
