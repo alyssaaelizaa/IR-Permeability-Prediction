@@ -11,6 +11,8 @@ install.packages("ggplot2")
 library(ggplot2)
 install.packages("corrplot")
 library(corrplot)
+install.packages("glmnet")
+library(glmnet)
 
 ### Exercise 6.1:
 
@@ -154,9 +156,42 @@ plot(training_variance, xlab="Component", ylab="Percentage of Total Variance",
      xlim=c(1, 5),
      ylim=c(0, max(training_variance[1:5])))
 
+# Linear Regression
+training_lm_model <- lm(fat_percentage ~ training_pca$x[, 1] +
+                          training_pca$x[, 2] +
+                          training_pca$x[, 3], data = training_data)
+
+summary(training_lm_model)
+
+# Assumptions Visuals 
+par(mfrow = c(2, 2))
+plot(training_lm_model) 
+
+# Lasso 
+# defining predictor and response variable
+x <- as.matrix(training_data[, -which(names(training_data) == "fat_percentage")])
+y <- training_data$fat_percentage
+
+# perform k-fold cross-validation to find optimal lambda value
+lasso_cv <- cv.glmnet(x, y, alpha = 1)
+
+# find optimal lambda value that minimizes test MSE
+best_lambda <- lasso_cv$lambda.min
+best_lambda
+#produce plot of test MSE by lambda value
+plot(lasso_cv) 
+
+# find coefficients of best model
+lasso_model <- glmnet(x, y, alpha = 1, lambda = best_lambda)
+
+# Print selected coefficients
+print(coef(lasso_model))
+
+
+
 # TODO: 
 # build multiple models for analysis. 
-# Models: Linear Regression, Lasso, and Ridge
+# Models: Lasso, and Ridge
 
 
 ### TODO: 
