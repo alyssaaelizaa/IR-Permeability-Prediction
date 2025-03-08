@@ -13,6 +13,9 @@ install.packages("corrplot")
 library(corrplot)
 install.packages("glmnet")
 library(glmnet)
+install.packages("impute")
+library(impute)
+
 
 ### Exercise 6.1:
 
@@ -179,6 +182,7 @@ lasso_cv <- cv.glmnet(x, y, alpha = 1)
 best_lambda <- lasso_cv$lambda.min
 best_lambda
 # produce plot of test MSE by lambda value
+par(mfrow = c(1, 1))
 plot(lasso_cv) 
 
 # find coefficients of best model
@@ -189,11 +193,10 @@ print(coef(lasso_model))
 train_predictions <- predict(lasso_model, s = best_lambda, newx = x)
 train_predictions
 # Calculate R squared for evaluation
-actuals <- training_data$fat_percentage
-rss <- sum((actuals - train_predictions)^2)  
-tss <- sum((actuals - mean(actuals))^2)   
-r_squared_train <- 1 - (rss / tss)
-r_squared_train
+sst_lasso <- sum((y - mean(y))^2)
+sse_lasso <- sum((train_predictions - y)^2)
+rsq_lasso <- 1 - sse_lasso/sst_lasso
+rsq_lasso
 
 
 # Ridge Regression
@@ -212,13 +215,53 @@ print(coef(ridge_model))
 train_ridge_predictions <- predict(ridge_model, s = best_lambda_ridge, newx = x)
 train_ridge_predictions
 # Calculate R-squared for the training data for evaluation
-ss_total_train <- sum((y - mean(y))^2)
-ss_residual_train <- sum((y - train_ridge_predictions)^2)
-r_squared_train <- 1 - (ss_residual_train / ss_total_train)
-print(r_squared_train)
+sst_ridge <- sum((y - mean(y))^2)
+sse_ridge <- sum((train_ridge_predictions - y)^2)
+rsq_ridge <- 1 - sse_ridge/sst_ridge
+rsq_ridge
 
+
+### Exercise 6.2:
+
+# (a) Start R and use these commands to load the data:
+
+data(permeability)
+
+# b) The fingerprint predictors indicate the presence or absence of substructures 
+# of a molecule and are often sparse meaning that relatively few of the
+# molecules contain each substructure. Filter out the predictors that have
+# low frequencies using the nearZeroVar function from the caret package.
+# How many predictors are left for modeling?
+near_zero <- nearZeroVar(fingerprints)
+filtered_fingerprints <- fingerprints[, -near_zero]
+ncol(filtered_fingerprints)
+
+# c) Split the data into a training and a test set, pre-process the data, and
+# tune a PLS model. How many latent variables are optimal and what is
+# the corresponding resampled estimate of R2?
+
+set.seed(54)
+# Combine predictors and the target variable into one data frame
+combined_data <- data.frame(filtered_fingerprints, permeability = permeability)
+# Split data into training and testing data
+permeability_trainIndex <- createDataPartition(combined_data$permeability,
+                                  p = 0.8,
+                                  list = FALSE)
+perm_training_data <- combined_data[permeability_trainIndex, ]
+perm_testing_data <- combined_data[-permeability_trainIndex, ]
+
+# pre-processing
+sum(is.na(combined_data)) # check for missing values
+str(perm_training_data) # ensure columns are numerical
+
+# Data is moderately and severely right-skewed based on output
+skewness(perm_training_data)
+histogram(perm_training_data$permeability,
+          main = "Historgram Distribution of Permeability",
+          xlab = "Permeability",
+          ylab = "Frequency")
 
 
 ### TODO: 
-# Exercise 6.1: (d) - (e)
-# Exercise 6.2: (a) - (d)
+
+# Exercise 6.2: (c) in-progress, (d)
